@@ -16,15 +16,27 @@
  *
  */
 
+#ifdef _WIN32
+#include <stdint.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <sys/types.h>
+
+#ifdef _WIN32
+#include <WinSock2.h>
+#define bzero(b, len) (memset(b, 0, len))
+#define bcopy(b1, b2, len) (memcpy(b1, b2, len))
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif
 
 #define NTP_TIMESTAMP_DELTA 2208988800ull
 
