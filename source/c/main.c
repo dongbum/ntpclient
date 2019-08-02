@@ -29,11 +29,14 @@
 #include <sys/types.h>
 
 #ifdef _WIN32
+#pragma comment (lib, "Ws2_32.lib")
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 #define bzero(b, len) (memset(b, 0, len))
 #define bcopy(b1, b2, len) (memcpy(b1, b2, len))
 #define write(sock, data, size) (send(sock, data, size, 0))
 #define read(sock, data, size) (recv(sock, data, size, 0))
+#define _CRT_SECURE_NO_WARNINGS
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -107,17 +110,32 @@ int main( int argc, char* argv[ ] )
   // connect to the server, send the packet, and then read in the return packet.
 
   struct sockaddr_in serv_addr; // Server address data structure.
-  struct hostent *server;      // Server data structure.
+  struct addrinfo *server;      // Server data structure.
 
   sockfd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP ); // Create a UDP socket.
 
   if ( sockfd < 0 )
     error( "ERROR opening socket" );
 
-  server = gethostbyname( host_name ); // Convert URL to IP.
+  int result = 0;
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  
+  // Convert URL to IP.
+  if (result = getaddrinfo(host_name, NULL, &hints, &server))
+  {
+	  error("getaddrinfo error");
+	  return 1;
+  }
+
+  /*
+  server = gethostbyname( host_name ); 
 
   if ( server == NULL )
     error( "ERROR, no such host" );
+	*/
 
   // Zero out the server address structure.
 
@@ -126,8 +144,9 @@ int main( int argc, char* argv[ ] )
   serv_addr.sin_family = AF_INET;
 
   // Copy the server's IP address to the server address structure.
-
-  bcopy( ( char* )server->h_addr, ( char* ) &serv_addr.sin_addr.s_addr, server->h_length );
+  
+  // bcopy( ( char* )server->h_addr, ( char* ) &serv_addr.sin_addr.s_addr, server->h_length );
+  bcopy((char*)server->ai_addr, (char*)&serv_addr.sin_addr.s_addr, server->ai_addrlen);
 
   // Convert the port number integer to network big-endian style and save it to the server address structure.
 
