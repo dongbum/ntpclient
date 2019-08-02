@@ -32,6 +32,8 @@
 #include <WinSock2.h>
 #define bzero(b, len) (memset(b, 0, len))
 #define bcopy(b1, b2, len) (memcpy(b1, b2, len))
+#define write(sock, data, size) (send(sock, data, size, 0))
+#define read(sock, data, size) (recv(sock, data, size, 0))
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
